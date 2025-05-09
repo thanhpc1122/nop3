@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Công Việc Thông Minh</title>
+  <style>
+    /* Reset cơ bản */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f5;
+      color: #333;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: #7f8c8d;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Form thêm công việc */
+    #task-form {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #task-form input,
+    #task-form select {
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+    }
+
+    #task-form button {
+      padding: 8px;
+      background-color: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #task-form button:hover {
+      background-color: #1e8449;
+    }
+
+    /* Điều khiển bộ lọc và tìm kiếm */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .controls .filters,
+    .controls .search {
+      display: flex;
+      gap: 10px;
+    }
+
+    .controls input {
+      padding: 6px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .controls select {
+      padding: 6px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    /* Danh sách công việc */
+    #task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      align-items: center;
+      background-color: #fdfdfd;
+      padding: 10px;
+      border: 1px solid #ecf0f1;
+      border-radius: 4px;
+    }
+
+    .task-item.completed .title {
+      text-decoration: line-through;
+      color: #95a5a6;
+    }
+
+    .task-item .title {
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .task-item .due-date,
+    .task-item .priority {
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .task-item button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .task-item .complete-btn {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    .task-item .complete-btn:hover {
+      background-color: #21618c;
+    }
+
+    .task-item .delete-btn {
+      background-color: #c0392b;
+      color: white;
+    }
+
+    .task-item .delete-btn:hover {
+      background-color: #922b21;
+    }
+
+    .task-item .edit-btn {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .task-item .edit-btn:hover {
+      background-color: #d35400;
+    }
+
+    @media (max-width: 768px) {
+      #task-form {
+        grid-template-columns: 1fr;
+      }
+      .task-item {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quản Lý Công Việc Thông Minh</h1>
+    <p>Thêm, sắp xếp và theo dõi tiến độ công việc của bạn</p>
+  </header>
+  <div class="container">
+    <form id="task-form">
+      <input type="text" id="title-input" placeholder="Nội dung công việc" required>
+      <input type="date" id="due-input" required>
+      <select id="priority-input">
+        <option value="Thấp">Thấp</option>
+        <option value="Trung bình">Trung bình</option>
+        <option value="Cao">Cao</option>
+      </select>
+      <button type="submit">Thêm công việc</button>
+      <button type="button" id="clear-all-btn">Xóa hết</button>
+    </form>
+
+    <div class="controls">
+      <div class="filters">
+        <select id="status-filter">
+          <option value="Tất cả">Tất cả</option>
+          <option value="Chưa hoàn thành">Chưa hoàn thành</option>
+          <option value="Đã hoàn thành">Đã hoàn thành</option>
+        </select>
+        <select id="sort-filter">
+          <option value="dateAsc">Ngày tăng dần</option>
+          <option value="dateDesc">Ngày giảm dần</option>
+          <option value="priority">Ưu tiên</option>
+        </select>
+      </div>
+      <div class="search">
+        <input type="text" id="search-input" placeholder="Tìm kiếm công việc">
+      </div>
+    </div>
+
+    <ul id="task-list"></ul>
+  </div>
+  <script>
+    (function() {
+      const form = document.getElementById('task-form');
+      const titleInput = document.getElementById('title-input');
+      const dueInput = document.getElementById('due-input');
+      const priorityInput = document.getElementById('priority-input');
+      const clearAllBtn = document.getElementById('clear-all-btn');
+
+      const statusFilter = document.getElementById('status-filter');
+      const sortFilter = document.getElementById('sort-filter');
+      const searchInput = document.getElementById('search-input');
+      const taskList = document.getElementById('task-list');
+      const STORAGE_KEY = 'smartTasks';
+
+      function getTasks() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      }
+
+      function saveTasks(tasks) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      function createTaskElement(task, index) {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        if (task.completed) li.classList.add('completed');
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'title';
+        titleSpan.textContent = task.title;
+
+        const dueSpan = document.createElement('span');
+        dueSpan.className = 'due-date';
+        dueSpan.textContent = new Date(task.due).toLocaleDateString();
+
+        const prioSpan = document.createElement('span');
+        prioSpan.className = 'priority';
+        prioSpan.textContent = task.priority;
+
+        // nút hoàn thành
+        const completeBtn = document.createElement('button');
+        completeBtn.className = 'complete-btn';
+        completeBtn.textContent = task.completed ? 'Hoàn tác' : 'Hoàn thành';
+        completeBtn.addEventListener('click', () => toggleComplete(index));
+
+        // nút sửa
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = 'Sửa';
+        editBtn.addEventListener('click', () => editTask(index));
+
+        // nút xóa
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Xóa';
+        deleteBtn.addEventListener('click', () => deleteTask(index));
+
+        li.append(titleSpan, dueSpan, prioSpan, completeBtn, editBtn, deleteBtn);
+        return li;
+      }
+
+      function renderTasks() {
+        taskList.innerHTML = '';
+        let tasks = getTasks();
+
+        // lọc trạng thái
+        const statusValue = statusFilter.value;
+        if (statusValue !== 'Tất cả') {
+          tasks = tasks.filter(t => t.completed === (statusValue === 'Đã hoàn thành'));
+        }
+
+        // tìm kiếm
+        const keyword = searchInput.value.toLowerCase();
+        if (keyword) {
+          tasks = tasks.filter(t => t.title.toLowerCase().includes(keyword));
+        }
+
+        // sắp xếp
+        const sortValue = sortFilter.value;
+        if (sortValue === 'dateAsc') {
+          tasks.sort((a,b) => new Date(a.due) - new Date(b.due));
+        } else if (sortValue === 'dateDesc') {
+          tasks.sort((a,b) => new Date(b.due) - new Date(a.due));
+        } else if (sortValue === 'priority') {
+          const order = { 'Cao': 1, 'Trung bình': 2, 'Thấp': 3 };
+          tasks.sort((a,b) => order[a.priority] - order[b.priority]);
+        }
+
+        tasks.forEach((task, idx) => {
+          const elem = createTaskElement(task, idx);
+          taskList.appendChild(elem);
+        });
+      }
+
+      function addTask(title, due, priority) {
+        const tasks = getTasks();
+        tasks.push({ title, due, priority, completed: false });
+        saveTasks(tasks);
+        renderTasks();
+      }
+
+      function deleteTask(index) {
+        let tasks = getTasks();
+        tasks.splice(index, 1);
+        saveTasks(tasks);
+        renderTasks();
+      }
+
+      function toggleComplete(index) {
+        const tasks = getTasks();
+        tasks[index].completed = !tasks[index].completed;
+        saveTasks(tasks);
+        renderTasks();
+      }
+
+      function editTask(index) {
+        const tasks = getTasks();
+        const task = tasks[index];
+        const newTitle = prompt('Chỉnh sửa nội dung', task.title);
+        if (newTitle !== null) {
+          task.title = newTitle.trim() || task.title;
+          saveTasks(tasks);
+          renderTasks();
+        }
+      }
+
+      function clearAllTasks() {
+        if (confirm('Bạn có chắc muốn xóa hết công việc?')) {
+          localStorage.removeItem(STORAGE_KEY);
+          renderTasks();
+        }
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        addTask(titleInput.value.trim(), dueInput.value, priorityInput.value);
+        form.reset();
+      });
+
+      clearAllBtn.addEventListener('click', clearAllTasks);
+      statusFilter.addEventListener('change', renderTasks);
+      sortFilter.addEventListener('change', renderTasks);
+      searchInput.addEventListener('input', renderTasks);
+
+      // khởi tạo hiển thị
+      renderTasks();
+    })();
+  </script>
+</body>
+</html>
